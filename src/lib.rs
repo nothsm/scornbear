@@ -6,6 +6,40 @@ use std::error::{Error};
 use std::io::{Read};
 
 
+/*
+ * === scornbear Design ===
+ * The scornbear system is designed first and foremost around *simplicity*.
+ *
+ * We use the following criteria guide our design:
+ * 1) ** Simplicity **
+ * 2) Correctness
+ * 3) Hackability
+ * 4) Performance.
+ *
+ * TODO: Improve the writing in this message.
+ */
+
+/*
+ * === scornbear Style ===
+ * - "scornbear" should always be written in all lowercase. Never refer to the
+ *    scornbear as a "system". Always a "program".
+ * - Floats with only trailing 0's should be written as "x.". For example, "1.", "3.", "4.".
+ * - Convert to String using .to_string() rather than String::from.
+ *     Justification: Pipelining is easier with .to_string().
+ * - No nested conditionals or nested pattern matching.
+ * - We use the OpenBSD commenting style. That is, we use the /* */ delimiters
+ *   for comments. All comments should be written in complete sentences with
+ *   punctuation.
+ *
+ *   Here's an example of a comment,
+ *   /*
+ *    * Your comment goes here.
+ *    */.
+ *
+ *   Small inline comments can be written inline with /*  */
+ */
+
+
 const LOGO: &str = r"                          _
                          | |
  ___  ___ ___  _ __ _ __ | |__   ___  __ _ _ __
@@ -239,30 +273,25 @@ fn tokens_read(ts: &mut VecDeque<String>) -> Result<Expr, &'static str> {
         },
         None => Err("tokens_read: tokens must be nonempty"),
     };
-
     /*
      * Post: TODO
      */
-
     expr
 }
 
 fn read(s: &str) -> Result<Expr, &'static str> {
     /*
-     * TODO: This procedure is missing preconditions
+     * Pre: TODO
      */
-
-    let expr = tokens_read(&mut VecDeque::from(lex(s)));
-
+    tokens_read(&mut VecDeque::from(lex(s)))
     /*
-     * TODO: This procedure is missing postconditions.
+     * Post: TODO
      */
-    expr
 }
 
 fn add_zero_lint(x: Expr) -> Option<String> {
     /*
-     * TODO: This procedure is missing preconditions.
+     * Pre: TODO
      */
     match x {
         Expr::List(xs) => match *xs {
@@ -277,20 +306,20 @@ fn add_zero_lint(x: Expr) -> Option<String> {
         Expr::IntLit(_) | Expr::FltLit(_) | Expr::Symbol(_) => None,
     }
     /*
-     * TODO: This procedure is missing postconditions.
+     * Post: TODO
      */
 }
 
 fn lint(x: Expr) -> Vec<String> {
     /*
-     * TODO: This procedure is missing preconditions.
+     * Pre: TODO
      */
     match add_zero_lint(x) {
         None => vec![],
         Some(s) => vec![s]
     }
     /*
-     * TODO: This procedure is missing postconditions.
+     * Post: TODO
      */
 }
 
@@ -457,6 +486,7 @@ mod test {
                 ")",
             ]"#]],
         );
+
         ppr_check(
             lex(expr2),
             expect![[r#"
@@ -472,6 +502,7 @@ mod test {
                     ")",
                 ]"#]],
         );
+
         ppr_check(
             lex(program),
             expect![[r#"
@@ -524,6 +555,7 @@ mod test {
                     ],
                 )"#]],
         );
+
         ppr_check(
             tokens_read(&mut VecDeque::from(lex(expr2))).unwrap(),
             expect![[r#"
@@ -551,6 +583,7 @@ mod test {
                     ],
                 )"#]],
         );
+
         ppr_check(
             tokens_read(&mut VecDeque::from(lex(program))).unwrap(),
             expect![[r#"
@@ -619,6 +652,7 @@ mod test {
                     ],
                 )"#]],
         );
+
         ppr_check(
             read(expr2).unwrap(),
             expect![[r#"
@@ -646,6 +680,7 @@ mod test {
                     ],
                 )"#]],
         );
+
         ppr_check(
             read(program).unwrap(),
             expect![[r#"
@@ -774,5 +809,12 @@ mod test {
      * - [ ] Less verbose pretty printer for Expr.
      * - [ ] Should the atomic expression property be embedded in the type system?
      * - [ ] Rename `scornbear` to `libsb`.
+     * - [ ] Add float arms for zero_lint.
+     * - [ ] Reify Mul, Add to Expr (then simplify corresponds rules).
+     * - [ ] Convert String::from to .to_string()
+     * - [ ] Add Rule enum and convert corresponding lints.
+     * - [ ] Add property-based tests.
+     * - [ ] Move test expressions into mod test.
      */
+
 }
