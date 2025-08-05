@@ -1,4 +1,3 @@
-
 /*
  * TODO: This needs to be removed!
  */
@@ -54,21 +53,6 @@ const LOGO: &str = r"                          _
                                                 ";
 
 const BUFSIZE: usize = 1024;
-
-const expr1: &str = "(+ 3 4)";
-const expr2: &str = "(* 2 (+ 3 4))";
-
-const add_zero: &str = "(+ x 0)";
-const zero_add: &str = "(+ 0 x)";
-
-const mul_one: &str = "(* x 1)";
-const one_mul: &str = "(* 1 x)";
-const mul_fone: &str = "(* x 1.)";
-const fone_mul: &str = "(* 1. x)";
-
-const program: &str = "(begin (define r 10) (* pi (* r r)))";
-
-const neg1: Expr = Expr::IntLit(-1);
 
 #[derive(Debug)]
 enum Expr {
@@ -436,12 +420,27 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use std::fs::{File};
+    use std::fmt::{Debug};
 
     use expect_test::{Expect, expect};
 
-    use std::fs::{File};
-    use std::fmt::{Debug};
+    use super::*;
+
+    const expr1: &str = "(+ 3 4)";
+    const expr2: &str = "(* 2 (+ 3 4))";
+
+    const add_zero: &str = "(+ x 0)";
+    const zero_add: &str = "(+ 0 x)";
+
+    const mul_one: &str = "(* x 1)";
+    const one_mul: &str = "(* 1 x)";
+    const mul_fone: &str = "(* x 1.)";
+    const fone_mul: &str = "(* 1. x)";
+
+    const program: &str = "(begin (define r 10) (* pi (* r r)))";
+
+    const neg1: Expr = Expr::IntLit(-1);
 
     fn str_check<T: ToString>(actual: T, expect: Expect) {
         let actual = actual.to_string();
