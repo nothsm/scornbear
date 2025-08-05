@@ -56,8 +56,15 @@ const BUFSIZE: usize = 1024;
 
 const expr1: &str = "(+ 3 4)";
 const expr2: &str = "(* 2 (+ 3 4))";
+
 const add_zero: &str = "(+ x 0)";
 const zero_add: &str = "(+ 0 x)";
+
+const mul_one: &str = "(* x 1)"; 
+const one_mul: &str = "(* 1 x)";
+const mul_fone: &str = "(* x 1.)"; 
+const fone_mul: &str = "(* 1. x)";
+
 const program: &str = "(begin (define r 10) (* pi (* r r)))";
 
 const neg1: Expr = Expr::IntLit(-1);
@@ -311,6 +318,22 @@ fn add_zero_lint(x: Expr) -> Option<String> {
     /*
      * Post: TODO
      */
+}
+
+fn mul_one_lint(x: Expr) -> Option<String> {
+    use Expr::*;
+
+    match x {
+        List(xs) => match *xs {
+            [Symbol(ref op), ref a, ref b] if op == "*" => match (a, b) {
+                (Symbol(_), IntLit(1) | FltLit(1.)) | 
+                (IntLit(1) | FltLit(1.), Symbol(_)) => Some("mul_one".to_string()),
+                _ => None,
+            } 
+            _ => None,
+        }
+        IntLit(_) | FltLit(_) | Symbol(_) => None,
+    }
 }
 
 fn lint(x: Expr) -> Vec<String> {
@@ -776,6 +799,26 @@ mod test {
 
         let expr = read(zero_add).unwrap();
         dbg_check(add_zero_lint(expr), expect![[r#"Some("add_zero")"#]])
+    }
+
+    #[test]
+    fn test_mul_one_lint() {
+        // case: mul one
+        let expr = read(mul_one).unwrap(); 
+        dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
+
+        let expr = read(one_mul).unwrap(); 
+        dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
+
+        let expr = read(mul_fone).unwrap(); 
+        dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
+
+        let expr = read(fone_mul).unwrap(); 
+        dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
+
+        // case: not mul one
+        let expr = read(expr2).unwrap(); 
+        dbg_check(mul_one_lint(expr), expect!["None"]);
     }
 
     #[test]
