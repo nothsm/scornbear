@@ -3,11 +3,10 @@
  */
 #![allow(warnings)]
 
+use std::collections::VecDeque;
+use std::error::Error;
 use std::io;
-use std::collections::{VecDeque};
-use std::error::{Error};
-use std::io::{Read};
-
+use std::io::Read;
 
 /*
  * === scornbear Design ===
@@ -41,7 +40,6 @@ use std::io::{Read};
  *
  *   Small inline comments can be written inline with /*  */.
  */
-
 
 const LOGO: &str = r"                          _
                          | |
@@ -210,7 +208,7 @@ fn atom_read(s: &str) -> Result<Expr, &'static str> {
      */
     debug_assert!(s == s.trim());
 
-    use Expr::{IntLit, FltLit, Symbol};
+    use Expr::{FltLit, IntLit, Symbol};
 
     /*
      * TODO: This is really ugly.
@@ -283,16 +281,12 @@ fn add_zero_lint(x: Expr) -> Option<String> {
     /*
      * Pre: TODO
      */
-    use Expr::{IntLit, FltLit, Symbol, List};
+    use Expr::{FltLit, IntLit, List, Symbol};
 
     match x {
-        List(xs) => match *xs {
-            [Symbol(ref op), Symbol(ref x), IntLit(0)] if op == "+" => { /* TODO: This is a kludge. */
-                Some(String::from("add_zero"))
-            }
-            [Symbol(ref op), IntLit(0), Symbol(ref x)] if op == "+" => {
-                Some(String::from("add_zero"))
-            }
+        List(xs) => match xs.as_ref() {
+            [Symbol(op), Symbol(x), IntLit(0)] if op == "+" => Some("add_zero".to_string()),
+            [Symbol(op), IntLit(0), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
             _ => None,
         },
         IntLit(_) | FltLit(_) | Symbol(_) => None,
@@ -303,17 +297,17 @@ fn add_zero_lint(x: Expr) -> Option<String> {
 }
 
 fn mul_one_lint(x: Expr) -> Option<String> {
-    use Expr::{IntLit, FltLit, Symbol, List};
+    use Expr::{FltLit, IntLit, List, Symbol};
 
     match x {
-        List(xs) => match *xs {
-            [Symbol(ref op), ref a, ref b] if op == "*" => match (a, b) {
-                (Symbol(_), IntLit(1) | FltLit(1.)) |
-                (IntLit(1) | FltLit(1.), Symbol(_)) => Some("mul_one".to_string()),
-                _ => None,
-            }
+        List(xs) => match xs.as_ref() {
+            [Symbol(op), Symbol(x), IntLit(1)] if op == "*" => Some("mul_one".to_string()),
+            [Symbol(op), Symbol(x), FltLit(1.)] if op == "*" => Some("mul_one".to_string()),
+            [Symbol(op), IntLit(1), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
+            [Symbol(op), FltLit(1.), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
             _ => None,
-        }
+            _ => None,
+        },
         IntLit(_) | FltLit(_) | Symbol(_) => None,
     }
 }
@@ -324,7 +318,7 @@ fn lint(x: Expr) -> Vec<String> {
      */
     match add_zero_lint(x) {
         None => vec![],
-        Some(s) => vec![s]
+        Some(s) => vec![s],
     }
     /*
      * Post: TODO
@@ -350,10 +344,10 @@ fn slurp<T: Read>(f: &mut T, buf: &mut String) -> Result<usize, &'static str> {
             Ok(n) if n > 0 => {
                 extend_bytes(buf, &mybuf[i..i + n]);
                 i += n;
-            },
+            }
             Ok(n) => {
                 break;
-            },
+            }
             Err(e) => {
                 return Err("slurp: unexpected file read error");
             }
@@ -366,7 +360,7 @@ fn slurp<T: Read>(f: &mut T, buf: &mut String) -> Result<usize, &'static str> {
 }
 
 pub struct Config {
-    pub is_quiet: bool
+    pub is_quiet: bool,
 }
 
 impl Config {
@@ -378,17 +372,12 @@ impl Config {
          * Pre: TODO
          */
         if args.len() == 1 {
-            Ok(Config {
-               is_quiet: false
-            })
+            Ok(Config { is_quiet: false })
         } else if args.len() == 2 && args[1] == "-q" {
-            Ok(Config {
-                is_quiet: true
-            })
+            Ok(Config { is_quiet: true })
         } else if args.len() == 2 && args[1] != "-q" {
             Err(format!("sb: invalid option -- {}", args[1]))
-        }
-        else {
+        } else {
             Err(String::from("too many arguments"))
         }
         /*
@@ -420,8 +409,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod test {
-    use std::fs::{File};
-    use std::fmt::{Debug};
+    use std::fmt::Debug;
+    use std::fs::File;
 
     use expect_test::{Expect, expect};
 
@@ -831,9 +820,12 @@ mod test {
         let mut buf = String::new();
 
         str_check(slurp(&mut f, &mut buf).unwrap(), expect!["37"]);
-        str_check(buf, expect![[r#"
+        str_check(
+            buf,
+            expect![[r#"
             (begin (define r 10) (* pi (* r r)))
-        "#]]);
+        "#]],
+        );
     }
 
     /*
@@ -855,5 +847,4 @@ mod test {
      * - [ ] Add property-based tests.
      * - [ ] Move test expressions into mod test.
      */
-
 }

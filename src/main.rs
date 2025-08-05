@@ -5,7 +5,7 @@
 use std::env;
 use std::process;
 
-use scornbear::{Config};
+use scornbear::Config;
 
 fn usage() {
     eprintln!("usage: sb [-q]");
