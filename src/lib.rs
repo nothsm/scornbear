@@ -55,7 +55,7 @@ const BUFSIZE: usize = 1024;
 #[derive(Debug)]
 enum Expr {
     IntLit(i32),
-    FltLit(f32),
+    FpLit(f32),
     Symbol(String),
     List(Box<[Expr]>), /* TODO: This would more elegantly (but inefficiently)
                         *       expressed as a Linked List.
@@ -208,7 +208,7 @@ fn atom_read(s: &str) -> Result<Expr, &'static str> {
      */
     debug_assert!(s == s.trim());
 
-    use Expr::{FltLit, IntLit, Symbol};
+    use Expr::{FpLit, IntLit, Symbol};
 
     /*
      * TODO: This is really ugly.
@@ -216,7 +216,7 @@ fn atom_read(s: &str) -> Result<Expr, &'static str> {
     match s.parse::<i32>() {
         Ok(n) => Ok(IntLit(n)),
         Err(_) => match s.parse::<f32>() {
-            Ok(x) => Ok(FltLit(x)),
+            Ok(x) => Ok(FpLit(x)),
             Err(_) => Ok(Symbol(s.to_string())),
         },
     }
@@ -281,7 +281,7 @@ fn add_zero_lint(x: Expr) -> Option<String> {
     /*
      * Pre: TODO
      */
-    use Expr::{FltLit, IntLit, List, Symbol};
+    use Expr::{FpLit, IntLit, List, Symbol};
 
     match x {
         List(xs) => match xs.as_ref() {
@@ -289,7 +289,7 @@ fn add_zero_lint(x: Expr) -> Option<String> {
             [Symbol(op), IntLit(0), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
             _ => None,
         },
-        IntLit(_) | FltLit(_) | Symbol(_) => None,
+        IntLit(_) | FpLit(_) | Symbol(_) => None,
     }
     /*
      * Post: TODO
@@ -297,18 +297,18 @@ fn add_zero_lint(x: Expr) -> Option<String> {
 }
 
 fn mul_one_lint(x: Expr) -> Option<String> {
-    use Expr::{FltLit, IntLit, List, Symbol};
+    use Expr::{FpLit, IntLit, List, Symbol};
 
     match x {
         List(xs) => match xs.as_ref() {
             [Symbol(op), Symbol(x), IntLit(1)] if op == "*" => Some("mul_one".to_string()),
-            [Symbol(op), Symbol(x), FltLit(1.)] if op == "*" => Some("mul_one".to_string()),
+            [Symbol(op), Symbol(x), FpLit(1.)] if op == "*" => Some("mul_one".to_string()),
             [Symbol(op), IntLit(1), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
-            [Symbol(op), FltLit(1.), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
+            [Symbol(op), FpLit(1.), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
             _ => None,
             _ => None,
         },
-        IntLit(_) | FltLit(_) | Symbol(_) => None,
+        IntLit(_) | FpLit(_) | Symbol(_) => None,
     }
 }
 
@@ -391,6 +391,9 @@ fn logo() {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    /*
+     * Pre: TODO
+     */
     if !config.is_quiet {
         logo();
     }
@@ -405,6 +408,9 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     println!("lint = {:?}", lint(read(buf.trim())?));
 
     Ok(())
+    /*
+     * Post: TODO
+     */
 }
 
 #[cfg(test)]
@@ -539,8 +545,8 @@ mod test {
     #[test]
     fn test_atom_read() {
         dbg_check(atom_read("123").unwrap(), expect!["IntLit(123)"]);
-        dbg_check(atom_read("123.0").unwrap(), expect!["FltLit(123.0)"]);
-        dbg_check(atom_read("123.1").unwrap(), expect!["FltLit(123.1)"]);
+        dbg_check(atom_read("123.0").unwrap(), expect!["FpLit(123.0)"]);
+        dbg_check(atom_read("123.1").unwrap(), expect!["FpLit(123.1)"]);
         dbg_check(atom_read("foo").unwrap(), expect![[r#"Symbol("foo")"#]]);
     }
 
