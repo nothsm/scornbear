@@ -1,3 +1,4 @@
+
 /*
  * TODO: This needs to be removed!
  */
@@ -24,7 +25,7 @@ use std::io::{Read};
 
 /*
  * === scornbear Style ===
- * - "scornbear" should always be written in all lowercase. Never refer to the
+ * - "scornbear" should always be written in all lowercase. Never refer to
  *    scornbear as a "system". Always a "program".
  * - Floats with only trailing 0's should be written as "x.". For example, "1.", "3.", "4.".
  * - Convert to String using .to_string() rather than String::from.
@@ -39,7 +40,7 @@ use std::io::{Read};
  *    * Your comment goes here.
  *    */.
  *
- *   Small inline comments can be written inline with /*  */
+ *   Small inline comments can be written inline with /*  */.
  */
 
 
@@ -60,9 +61,9 @@ const expr2: &str = "(* 2 (+ 3 4))";
 const add_zero: &str = "(+ x 0)";
 const zero_add: &str = "(+ 0 x)";
 
-const mul_one: &str = "(* x 1)"; 
+const mul_one: &str = "(* x 1)";
 const one_mul: &str = "(* 1 x)";
-const mul_fone: &str = "(* x 1.)"; 
+const mul_fone: &str = "(* x 1.)";
 const fone_mul: &str = "(* 1. x)";
 
 const program: &str = "(begin (define r 10) (* pi (* r r)))";
@@ -83,13 +84,11 @@ fn extend_bytes(s: &mut String, bs: &[u8]) {
     /*
      * Pre: TODO
      */
-
     #[cfg(debug_assertions)]
     let n = s.len();
     let m = bs.len();
 
     let mut i = 0;
-
     /*
      * Inv: s is the string s[0], ..., s[n - 1], bs[0], ..., bs[m - 1].
      *
@@ -117,7 +116,6 @@ fn extend(s: &mut String, t: &str) {
     /*
      * Pre: TODO
      */
-
     #[cfg(debug_assertions)]
     let n = s.len();
     let m = t.len();
@@ -138,7 +136,6 @@ fn replace(s: &str, c: u8, t: &str) -> String {
     /*
      * Pre: TODO
      */
-
     let bs = s.as_bytes();
     let n = bs.len();
 
@@ -171,7 +168,6 @@ fn split(s: &str, c: u8) -> Vec<String> {
     /*
      * Pre: TODO
      */
-
     let bs = s.as_bytes();
     let n = bs.len();
 
@@ -230,21 +226,21 @@ fn atom_read(s: &str) -> Result<Expr, &'static str> {
      */
     debug_assert!(s == s.trim());
 
+    use Expr::{IntLit, FltLit, Symbol};
+
     /*
      * TODO: This is really ugly.
      */
-    let expr = match s.parse::<i32>() {
-        Ok(n) => Ok(Expr::IntLit(n)),
+    match s.parse::<i32>() {
+        Ok(n) => Ok(IntLit(n)),
         Err(_) => match s.parse::<f32>() {
-            Ok(x) => Ok(Expr::FltLit(x)),
-            Err(_) => Ok(Expr::Symbol(s.to_string())),
+            Ok(x) => Ok(FltLit(x)),
+            Err(_) => Ok(Symbol(s.to_string())),
         },
-    };
-
+    }
     /*
      * Post: TODO
      */
-    expr
 }
 
 /*
@@ -303,17 +299,19 @@ fn add_zero_lint(x: Expr) -> Option<String> {
     /*
      * Pre: TODO
      */
+    use Expr::{IntLit, FltLit, Symbol, List};
+
     match x {
-        Expr::List(xs) => match *xs {
-            [Expr::Symbol(ref op), Expr::Symbol(ref x), Expr::IntLit(0)] if op == "+" => { /* TODO: This is a kludge. */
+        List(xs) => match *xs {
+            [Symbol(ref op), Symbol(ref x), IntLit(0)] if op == "+" => { /* TODO: This is a kludge. */
                 Some(String::from("add_zero"))
             }
-            [Expr::Symbol(ref op), Expr::IntLit(0), Expr::Symbol(ref x)] if op == "+" => {
+            [Symbol(ref op), IntLit(0), Symbol(ref x)] if op == "+" => {
                 Some(String::from("add_zero"))
             }
             _ => None,
         },
-        Expr::IntLit(_) | Expr::FltLit(_) | Expr::Symbol(_) => None,
+        IntLit(_) | FltLit(_) | Symbol(_) => None,
     }
     /*
      * Post: TODO
@@ -321,15 +319,15 @@ fn add_zero_lint(x: Expr) -> Option<String> {
 }
 
 fn mul_one_lint(x: Expr) -> Option<String> {
-    use Expr::*;
+    use Expr::{IntLit, FltLit, Symbol, List};
 
     match x {
         List(xs) => match *xs {
             [Symbol(ref op), ref a, ref b] if op == "*" => match (a, b) {
-                (Symbol(_), IntLit(1) | FltLit(1.)) | 
+                (Symbol(_), IntLit(1) | FltLit(1.)) |
                 (IntLit(1) | FltLit(1.), Symbol(_)) => Some("mul_one".to_string()),
                 _ => None,
-            } 
+            }
             _ => None,
         }
         IntLit(_) | FltLit(_) | Symbol(_) => None,
@@ -358,11 +356,8 @@ fn slurp<T: Read>(f: &mut T, buf: &mut String) -> Result<usize, &'static str> {
     /*
      * Pre: TODO
      */
-
     let mut mybuf: &mut [u8] = &mut [0; BUFSIZE];
-
     let mut i = 0;
-
     /*
      * Inv: TODO
      */
@@ -380,11 +375,10 @@ fn slurp<T: Read>(f: &mut T, buf: &mut String) -> Result<usize, &'static str> {
             }
         }
     }
-
+    Ok(i)
     /*
      * Post: TODO
      */
-    Ok(i)
 }
 
 pub struct Config {
@@ -804,20 +798,20 @@ mod test {
     #[test]
     fn test_mul_one_lint() {
         // case: mul one
-        let expr = read(mul_one).unwrap(); 
+        let expr = read(mul_one).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
-        let expr = read(one_mul).unwrap(); 
+        let expr = read(one_mul).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
-        let expr = read(mul_fone).unwrap(); 
+        let expr = read(mul_fone).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
-        let expr = read(fone_mul).unwrap(); 
+        let expr = read(fone_mul).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
         // case: not mul one
-        let expr = read(expr2).unwrap(); 
+        let expr = read(expr2).unwrap();
         dbg_check(mul_one_lint(expr), expect!["None"]);
     }
 
@@ -832,7 +826,7 @@ mod test {
 
     #[test]
     fn test_slurp() {
-        let filename = "data.txt";
+        let filename = "program.txt";
 
         let mut f = File::open(filename).unwrap();
         let mut buf = String::new();
