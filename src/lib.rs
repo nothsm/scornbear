@@ -3,6 +3,7 @@
  */
 #![allow(warnings)]
 
+use core::sync;
 use std::collections::VecDeque;
 use std::error::Error;
 use std::io;
@@ -286,7 +287,9 @@ fn add_zero_lint(x: Expr) -> Option<String> {
     match x {
         List(xs) => match xs.as_ref() {
             [Symbol(op), Symbol(x), IntLit(0)] if op == "+" => Some("add_zero".to_string()),
+            [Symbol(op), Symbol(x), FltLit(0.)] if op == "+" => Some("add_zero".to_string()),
             [Symbol(op), IntLit(0), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
+            [Symbol(op), FltLit(0.), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
             _ => None,
         },
         IntLit(_) | FltLit(_) | Symbol(_) => None,
@@ -305,7 +308,6 @@ fn mul_one_lint(x: Expr) -> Option<String> {
             [Symbol(op), Symbol(x), FltLit(1.)] if op == "*" => Some("mul_one".to_string()),
             [Symbol(op), IntLit(1), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
             [Symbol(op), FltLit(1.), Symbol(x)] if op == "*" => Some("mul_one".to_string()),
-            _ => None,
             _ => None,
         },
         IntLit(_) | FltLit(_) | Symbol(_) => None,
@@ -421,6 +423,8 @@ mod test {
 
     const add_zero: &str = "(+ x 0)";
     const zero_add: &str = "(+ 0 x)";
+    const add_fzero: &str = "(+ x 0.)"; 
+    const fzero_add: &str = "(+ 0. x)"; 
 
     const mul_one: &str = "(* x 1)";
     const one_mul: &str = "(* 1 x)";
@@ -780,12 +784,18 @@ mod test {
         dbg_check(add_zero_lint(expr), expect![[r#"Some("add_zero")"#]]);
 
         let expr = read(zero_add).unwrap();
-        dbg_check(add_zero_lint(expr), expect![[r#"Some("add_zero")"#]])
+        dbg_check(add_zero_lint(expr), expect![[r#"Some("add_zero")"#]]);
+
+        let expr = read(add_fzero).unwrap(); 
+        dbg_check(add_zero_lint(expr), expect![[r#"Some("add_zero")"#]]);
+
+        let expr = read(fzero_add).unwrap(); 
+        dbg_check(add_zero_lint(expr), expect![[r#"Some("add_zero")"#]]);
     }
 
     #[test]
     fn test_mul_one_lint() {
-        // case: mul one
+        // Case: mul one
         let expr = read(mul_one).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
@@ -798,7 +808,7 @@ mod test {
         let expr = read(fone_mul).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
-        // case: not mul one
+        // Case: none
         let expr = read(expr2).unwrap();
         dbg_check(mul_one_lint(expr), expect!["None"]);
     }
