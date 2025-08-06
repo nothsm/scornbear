@@ -3,7 +3,6 @@
  */
 #![allow(warnings)]
 
-use core::sync;
 use std::collections::VecDeque;
 use std::error::Error;
 use std::io;
