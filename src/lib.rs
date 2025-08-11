@@ -54,14 +54,22 @@ const LOGO: &str = r"                          _
 const BUFSIZE: usize = 1024;
 
 #[repr(C)]
-struct BVec {
+struct BVec { /* bear vector */
     buf: *mut i32,
     len: usize,
     cap: usize
 }
 
+/* TODO */
 #[repr(C)]
-struct BVecDeque; /* TODO */
+struct BString; /* bear (growable, heap-allocated) string */
+
+/* TODO */
+struct BBox; /* bear box */
+
+/* TODO */
+#[repr(C)]
+struct BVecDeque; /* bear vecdeque */
 
 #[repr(C)]
 #[derive(Debug)]
