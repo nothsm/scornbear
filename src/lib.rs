@@ -24,14 +24,32 @@ use std::io::{self, Read};
 
 /*
  * === scornbear style ===
- * - "scornbear" should always be written in all lowercase. never refer to
- *    scornbear as a "system". always a "program".
- * - floats with only trailing 0's should be written as "x.". for example, "1.", "3.", "4.".
+ * - in documentation, "scornbear" should always be written in all lowercase.
+ *     - why: to exec scornbear, you type "scornbear" into your tty, not
+ *            "Scornbear."
+ * -  never refer to scornbear as a "system". always a "program".
+ *     - why: a program is something you exec. a system is a collection of programs.
+ *            then, scornbear is something you exec (and thus, is a program).
+ * - floats with only trailing 0's should be written as "x.", not "x.0".
+ *     - ex: write "1." over "1.0".
+ *     - ex: write "3." over "3.0".
+ *     - why: it is more concise to drop trailing zeroes.
  * - convert to String using .to_string() rather than String::from.
- *     why: pipelining is easier with .to_string().
+ *     - why: pipelining is easier with .to_string().
  * - no nested conditionals or nested pattern matching.
+ *     - why: nested conditional logic is very complex. its hard to read.
+ *            it's hard to reason about.
  * - use the openbsd commenting style. read the code for examples.
+ *     - why: openbsd code is beautiful.
  * - all comments should be written in complete sentences with punctuation.
+ *     - why: this is left as an exercise for the reader.
+ * - every should function should have at least:
+ *   (i)   one sentence describing what it does,
+ *   (ii)  one sentence describing its preconditions,
+ *   (iii) one sentence describing its postconditions.
+ *     - why: TODO
+ * - every loop should be documented with at least a one-sentence invariant.
+ *     - why: TODO
  */
 
 const LOGO: &str = r"                          _
