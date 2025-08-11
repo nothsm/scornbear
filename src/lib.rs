@@ -354,9 +354,6 @@ fn logo() {
  * post: TODO
  */
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    /*
-     * Pre: TODO
-     */
     if !config.is_quiet {
         logo();
     }
@@ -371,9 +368,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     println!("lint = {:?}", lint(read(buf.trim())?));
 
     Ok(())
-    /*
-     * Post: TODO
-     */
 }
 
 #[cfg(test)]
