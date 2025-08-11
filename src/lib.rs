@@ -243,9 +243,9 @@ fn add_zero_lint(x: Expr) -> Option<String> {
     match x {
         List(xs) => match xs.as_ref() {
             [Symbol(op), Symbol(x), IntLit(0)] if op == "+" => Some("add_zero".to_string()),
-            [Symbol(op), Symbol(x), FltLit(0.)] if op == "+" => Some("add_zero".to_string()),
+            [Symbol(op), Symbol(x), FpLit(0.)] if op == "+" => Some("add_zero".to_string()),
             [Symbol(op), IntLit(0), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
-            [Symbol(op), FltLit(0.), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
+            [Symbol(op), FpLit(0.), Symbol(x)] if op == "+" => Some("add_zero".to_string()),
             _ => None,
         },
         IntLit(_) | FpLit(_) | Symbol(_) => None,
