@@ -1,12 +1,13 @@
-/*
- * TODO: This needs to be removed!
- */
+/* TODO: this needs to be removed! */
 #![allow(warnings)]
 
-use std::collections::VecDeque;
-use std::error::Error;
-use std::io;
-use std::io::Read;
+/* use std::alloc;
+use std::mem;
+use std::ptr; */
+
+use std::collections::{VecDeque};
+use std::error::{Error};
+use std::io::{self, Read};
 
 /*
  * === scornbear Design ===
@@ -52,82 +53,73 @@ const LOGO: &str = r"                          _
 
 const BUFSIZE: usize = 1024;
 
+#[repr(C)]
+struct BVec {
+    buf: *mut i32,
+    len: usize,
+    cap: usize
+}
+
+#[repr(C)]
+struct BVecDeque; /* TODO */
+
+#[repr(C)]
 #[derive(Debug)]
 enum Expr {
     IntLit(i32),
     FltLit(f32),
     Symbol(String),
-    List(Box<[Expr]>), /* TODO: This would more elegantly (but inefficiently)
-                        *       expressed as a Linked List.
-                        */
+    List(Box<[Expr]>), /* TODO: should be a linked list */
 }
 
+/*
+ * extend the bytes in s by bs.
+ * pre: TODO
+ * post: TODO
+ */
 fn extend_bytes(s: &mut String, bs: &[u8]) {
-    /*
-     * Pre: TODO
-     */
     #[cfg(debug_assertions)]
     let n = s.len();
     let m = bs.len();
 
     let mut i = 0;
-    /*
-     * Inv: s is the string s[0], ..., s[n - 1], bs[0], ..., bs[m - 1].
-     *
-     * TODO: This could be made more precise.
-     */
+    /* inv: s is the string s[0], ..., s[n - 1], bs[0], ..., bs[m - 1]. */
     while i < m {
-        /*
-         * TODO: What's the overheading of converting u8 to char?
-         */
+        /* TODO: what's the overheading of converting u8 to char? */
         s.push(bs[i] as char);
         i += 1;
     }
     debug_assert!(i == m);
-
-    /*
-     * Post: TODO
-     */
     debug_assert!(s.len() == n + m);
 }
 
 /*
- * TODO: Perhaps write a functional version of this?
+ * extend the string s by t.
+ * pre: TODO
+ * post: TODO
  */
 fn extend(s: &mut String, t: &str) {
-    /*
-     * Pre: TODO
-     */
     #[cfg(debug_assertions)]
     let n = s.len();
     let m = t.len();
 
     extend_bytes(s, t.as_bytes());
 
-    /*
-     * Post: TODO
-     */
     debug_assert!(s.len() == n + m);
 }
 
-#[inline(always)]
 /*
- * TODO: Extend this to replacing arbitrary strings.
+ * replace all instances of c by t in s. 
+ * pre:  TODO
+ * post: TODO
  */
 fn replace(s: &str, c: u8, t: &str) -> String {
-    /*
-     * Pre: TODO
-     */
     let bs = s.as_bytes();
     let n = bs.len();
 
     let mut i = 0;
     let mut acc = String::new();
-
-    /*
-     * Inv: acc is bs[0], ..., bs[i - 1] but for all j st bs[j] == c,
-     * acc has the string t inserted instead of c.
-     */
+    /* inv: acc is bs[0], ..., bs[i - 1] but for all j st bs[j] == c, acc has the string t inserted instead of c. */
     while i < n {
         if bs[i] == c {
             extend(&mut acc, t);
@@ -136,83 +128,60 @@ fn replace(s: &str, c: u8, t: &str) -> String {
         }
         i += 1;
     }
-
-    /*
-     * Post: TODO
-     */
     acc
 }
 
 /*
- * TODO: Extend this to splitting on arbitrary strings.
+ * split s on each instance of c.
+ * pre: TODO
+ * post: TODO
  */
 fn split(s: &str, c: u8) -> Vec<String> {
-    /*
-     * Pre: TODO
-     */
     let bs = s.as_bytes();
     let n = bs.len();
 
     let mut i = 0;
     let mut acc = vec![];
-
-    /*
-     * Inv: TODO
-     */
+    /* inv: TODO */
     while i < n {
         if bs[i] == c {
             i += 1;
         } else {
             let mut j = i + 1;
-
-            /*
-             * Inv: TODO
-             */
+            /* inv: TODO */
             while j < n && bs[j] != c {
                 j += 1;
             }
-            /*
-             * TODO: This is unsafe, and super inefficient!
-             */
             acc.push(String::from_utf8_lossy(&bs[i..j]).into_owned());
             i = j;
         }
     }
-
-    /*
-     * Post: TODO
-     */
     acc
 }
 
+/* 
+ * tokenize the string s.
+ * pre: TODO
+ * post: TODO
+ */
 fn lex(s: &str) -> Vec<String> {
-    /*
-     * Pre: TODO
-     */
     debug_assert!(s == s.trim());
 
-    /*
-     * TODO: Is there a simpler way to write this?
-     */
-    let ts = split(&replace(&replace(s, b'(', " ( "), b')', " ) "), b' ');
-
-    /*
-     * Post: TODO
-     */
-    ts
+    /* TODO: Is there a simpler way to write this? */
+    split(&replace(&replace(s, b'(', " ( "), b')', " ) "), b' ')
 }
 
+/*
+ * parse one atom from the string s.
+ * pre: TODO
+ * post: TODO
+ */
 fn atom_read(s: &str) -> Result<Expr, &'static str> {
-    /*
-     * Pre: TODO
-     */
     debug_assert!(s == s.trim());
 
     use Expr::{FltLit, IntLit, Symbol};
 
-    /*
-     * TODO: This is really ugly.
-     */
+    /* TODO: This is really ugly. */
     match s.parse::<i32>() {
         Ok(n) => Ok(IntLit(n)),
         Err(_) => match s.parse::<f32>() {
@@ -220,36 +189,27 @@ fn atom_read(s: &str) -> Result<Expr, &'static str> {
             Err(_) => Ok(Symbol(s.to_string())),
         },
     }
-    /*
-     * Post: TODO
-     */
 }
 
 /*
+ * parse the given list of tokens.
+ * pre: TODO
+ * post: TODO
  * TODO: How the hell was this algorithm derived?
  * TODO: I need to transform this into an iterative procedure using a stack. I
  *       don't want mutable references.
  */
 fn tokens_read(ts: &mut VecDeque<String>) -> Result<Expr, &'static str> {
     /*
-     * Pre: TODO
+     * TODO: what is as_str() doing?
+     * TODO: this code is really ugly.
      */
-
-    /*
-     * TODO: What is as_str() doing?
-     * TODO: This code is really ugly.
-     */
-    let expr = match ts.pop_front() {
+    match ts.pop_front() {
         Some(t) => match t.as_str() {
             "(" => {
-                /*
-                 * TODO: Why is this block correct?
-                 */
-
+                /* TODO: why is this block correct? */
                 let mut xs = vec![];
-                /*
-                 * Inv: TODO
-                 */
+                /* inv: TODO */
                 while ts[0].as_str() != ")" {
                     xs.push(tokens_read(ts)?);
                 }
@@ -260,27 +220,24 @@ fn tokens_read(ts: &mut VecDeque<String>) -> Result<Expr, &'static str> {
             c => atom_read(c),
         },
         None => Err("tokens_read: tokens must be nonempty"),
-    };
-    /*
-     * Post: TODO
-     */
-    expr
+    }
 }
 
+/*
+ * parse the string s into an expression.
+ * pre: TODO
+ * post: TODO
+ */
 fn read(s: &str) -> Result<Expr, &'static str> {
-    /*
-     * Pre: TODO
-     */
     tokens_read(&mut VecDeque::from(lex(s)))
-    /*
-     * Post: TODO
-     */
 }
 
+/*
+ * TODO
+ * pre: TODO
+ * post: TODO
+ */
 fn add_zero_lint(x: Expr) -> Option<String> {
-    /*
-     * Pre: TODO
-     */
     use Expr::{FltLit, IntLit, List, Symbol};
 
     match x {
@@ -293,11 +250,13 @@ fn add_zero_lint(x: Expr) -> Option<String> {
         },
         IntLit(_) | FltLit(_) | Symbol(_) => None,
     }
-    /*
-     * Post: TODO
-     */
 }
 
+/*
+ * TODO
+ * pre: TODO
+ * post: TODO
+ */
 fn mul_one_lint(x: Expr) -> Option<String> {
     use Expr::{FltLit, IntLit, List, Symbol};
 
@@ -313,17 +272,16 @@ fn mul_one_lint(x: Expr) -> Option<String> {
     }
 }
 
+/*
+ * TODO
+ * pre: TODO
+ * post: TODO
+ */
 fn lint(x: Expr) -> Vec<String> {
-    /*
-     * Pre: TODO
-     */
     match add_zero_lint(x) {
         None => vec![],
         Some(s) => vec![s],
     }
-    /*
-     * Post: TODO
-     */
 }
 
 /* TODO */
@@ -331,15 +289,15 @@ fn raise(x: Expr) -> Expr {
     todo!()
 }
 
+/*
+ * slurps TODO
+ * pre: TODO
+ * post: TODO
+ */
 fn slurp<T: Read>(f: &mut T, buf: &mut String) -> Result<usize, &'static str> {
-    /*
-     * Pre: TODO
-     */
     let mut mybuf: &mut [u8] = &mut [0; BUFSIZE];
     let mut i = 0;
-    /*
-     * Inv: TODO
-     */
+    /* inv: TODO */
     while true {
         match f.read(mybuf) {
             Ok(n) if n > 0 => {
@@ -355,23 +313,21 @@ fn slurp<T: Read>(f: &mut T, buf: &mut String) -> Result<usize, &'static str> {
         }
     }
     Ok(i)
-    /*
-     * Post: TODO
-     */
 }
 
+#[repr(C)]
 pub struct Config {
     pub is_quiet: bool,
 }
 
 impl Config {
-    /*
-     * TODO: This procedure needs proper flag handling.
+    /* 
+     * builds TODO
+     * pre: TODO
+     * post: TODO
+     * TODO: this functions needs proper flag handling. 
      */
     pub fn build(args: &[String]) -> Result<Config, String> {
-        /*
-         * Pre: TODO
-         */
         if args.len() == 1 {
             Ok(Config { is_quiet: false })
         } else if args.len() == 2 && args[1] == "-q" {
@@ -381,16 +337,22 @@ impl Config {
         } else {
             Err(String::from("too many arguments"))
         }
-        /*
-         * Post: TODO
-         */
     }
 }
 
+/* prints TODO
+ * pre: TODO
+ * post: TODO
+ */
 fn logo() {
     println!("{}", LOGO);
 }
 
+/*
+ * runs TODO
+ * pre: TODO
+ * post: TODO
+ */
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if !config.is_quiet {
         logo();
@@ -483,9 +445,7 @@ mod test {
 
     #[test]
     fn test_lex() {
-        /*
-         * TODO: Fix the long lines on this function.
-         */
+        /* TODO: fix the long lines on this function. */
         ppr_check(
             lex(expr1),
             expect![[r#"
@@ -794,7 +754,7 @@ mod test {
 
     #[test]
     fn test_mul_one_lint() {
-        // Case: mul one
+        /* case: mul one */
         let expr = read(mul_one).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
@@ -807,7 +767,7 @@ mod test {
         let expr = read(fone_mul).unwrap();
         dbg_check(mul_one_lint(expr), expect![[r#"Some("mul_one")"#]]);
 
-        // Case: none
+        /* case: none */
         let expr = read(expr2).unwrap();
         dbg_check(mul_one_lint(expr), expect!["None"]);
     }
