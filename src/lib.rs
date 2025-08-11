@@ -809,7 +809,7 @@ mod test {
      * - [ ] should the atomic expression property be embedded in the type system?
      * - [ ] rename `scornbear` to `libsb`.
      * - [ ] add Mul, Add to Expr (then simplify corresponds rules).
-     * - [ ] add Rule enum and convert corresponding lints.
+     * - [ ] add Rule trait and convert corresponding lints.
      * - [ ] add property-based tests.
      */
 }
