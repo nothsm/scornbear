@@ -1,9 +1,12 @@
 /* TODO: this needs to be removed! */
 #![allow(warnings)]
 
-/* use std::alloc;
+#![crate_name = "libsb"]
+#![crate_type = "lib"]
+
+use std::alloc;
 use std::mem;
-use std::ptr; */
+use std::ptr;
 
 use std::collections::{VecDeque};
 use std::error::{Error};
@@ -39,16 +42,19 @@ use std::io::{self, Read};
  * - no nested conditionals or nested pattern matching.
  *     - why: nested conditional logic is very complex. its hard to read.
  *            it's hard to reason about.
- * - use the openbsd commenting style. read the code for examples.
+ * - use the openbsd commenting style.
+ *     - ex: read the code.
  *     - why: openbsd code is beautiful.
  * - all comments should be written in complete sentences with punctuation.
  *     - why: this is left as an exercise for the reader.
- * - every should function should have at least:
+ * - every should function should be documented with at least:
  *   (i)   one sentence describing what it does,
  *   (ii)  one sentence describing its preconditions,
  *   (iii) one sentence describing its postconditions.
+ *     - ex: read the code.
  *     - why: TODO
  * - every loop should be documented with at least a one-sentence invariant.
+ *     - ex: read the code.
  *     - why: TODO
  */
 
@@ -63,11 +69,25 @@ const LOGO: &str = r"                          _
 
 const BUFSIZE: usize = 1024;
 
+/*
+ * represents a (scorn)bear vector.
+ * af: obj = TODO
+ * ri: TODO
+ */
 #[repr(C)]
-struct BVec { /* bear vector */
+struct BVec {
     buf: *mut i32,
     len: usize,
     cap: usize
+}
+
+/*
+ * constructs a new bvec.
+ * pre: TODO
+ * post: TODO
+ */
+fn bvec_new() -> BVec {
+    todo!()
 }
 
 /* TODO */
@@ -91,7 +111,7 @@ enum Expr {
 }
 
 /*
- * extend the bytes in s by bs.
+ * append bytes bs to the string s.
  * pre: TODO
  * post: TODO
  */
@@ -112,7 +132,7 @@ fn extend_bytes(s: &mut String, bs: &[u8]) {
 }
 
 /*
- * extend the string s by t.
+ * append str t to the string s.
  * pre: TODO
  * post: TODO
  */
@@ -800,7 +820,7 @@ mod test {
 
     #[test]
     fn test_slurp() {
-        let filename = "program.txt";
+        let filename = "data/program.txt";
 
         let mut f = File::open(filename).unwrap();
         let mut buf = String::new();

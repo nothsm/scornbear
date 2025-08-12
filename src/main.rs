@@ -1,11 +1,12 @@
-/*
- * TODO: Remove this!!
- */
+#![crate_type = "bin"]
+#![crate_name = "sb"]
 
 use std::env;
 use std::process;
 
-use scornbear::Config;
+// extern crate libsb; /* TODO: how do i configure rustc so this isn't necessary? */
+
+use libsb::Config;
 
 fn usage() {
     eprintln!("usage: sb [-q]");
@@ -20,8 +21,8 @@ fn main() {
         process::exit(1);
     });
 
-    if let Err(e) = scornbear::run(config) {
-        eprintln!("ls: internal error -- {}", e);
+    if let Err(e) = libsb::run(config) {
+        eprintln!("sb: internal error -- {}", e);
         process::exit(1);
     }
 }

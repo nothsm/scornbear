@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rustc --edition=2021 src/lib.rs
+
+rustc --edition=2021 --extern libsb=liblibsb.rlib src/main.rs
