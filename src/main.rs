@@ -4,9 +4,7 @@
 use std::env;
 use std::process;
 
-// extern crate libsb; /* TODO: how do i configure rustc so this isn't necessary? */
-
-use libsb::Config;
+use libsb::{self, Config};
 
 fn usage() {
     eprintln!("usage: sb [-q]");
