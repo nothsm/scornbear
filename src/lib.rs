@@ -4,7 +4,7 @@
 #![crate_name = "libsb"]
 #![crate_type = "lib"]
 
-use std::alloc;
+use std::alloc::{self, Layout};
 use std::mem;
 use std::ptr;
 
@@ -66,27 +66,168 @@ const LOGO: &str = r"                          _
 |___/\___\___/|_|  |_| |_|_.__/ \___|\__,_|_|
 
                                                 ";
-
 const BUFSIZE: usize = 1024;
+const BVEC_SIZE: usize = 4;
 
 /*
  * represents a (scorn)bear vector.
  * af: obj = TODO
- * ri: TODO
+ * ri: self.len < self.cap, TODO
  */
 #[repr(C)]
+#[derive(Debug)]
 struct BVec {
-    buf: *mut i32,
+    buf: *mut u32,
     len: usize,
     cap: usize
+}
+
+/*
+ * checks the bvec rep inv.
+ * pre: TODO
+ * post: TODO
+ */
+fn bvec_check_rep(xs: &BVec) {
+    debug_assert!(xs.len < xs.cap);
 }
 
 /*
  * constructs a new bvec.
  * pre: TODO
  * post: TODO
+ * TODO: properly handle layout errors.
+ * TODO: lazily allocate bvec. this is inefficient.
+ * TODO: make this function nicer.
+ * TODO: perhaps write my own Layout functions.
  */
 fn bvec_new() -> BVec {
+    let layout = Layout::array::<u32>(BVEC_SIZE).unwrap();
+
+    let buf = unsafe { alloc::alloc_zeroed(layout) as *mut u32 };
+    let len = 0;
+    let cap = BVEC_SIZE;
+
+    let xs = BVec { buf, len, cap };
+    bvec_check_rep(&xs);
+
+    xs
+}
+
+/*
+ * frees the memory allocatedf or the bvec xs.
+ * pre: TODO
+ * post: TODO
+ */
+fn bvec_free(xs: &BVec) {
+    todo!()
+}
+
+/*
+ * get the length of the bvec xs.
+ * pre: TODO
+ * post: TODO
+ * TODO: add tests.
+ */
+fn bvec_len(xs: &BVec) -> usize {
+    bvec_check_rep(xs);
+    xs.len
+}
+
+/*
+ * returns true if the bvec xs is empty (length = 0), else false
+ * pre: TODO
+ * post: TODO
+ */
+fn bvec_is_empty(xs: &BVec) -> bool {
+    bvec_check_rep(xs);
+    bvec_len(xs) == 0
+}
+
+/*
+ * get a raw mutable pointer to the bvec xs's buffer.
+ * pre: TODO
+ * post: TODO
+ * TODO: this should take in &mut BVec, not &BVec
+ * TODO: add tests
+ * TODO: i think this is super unsafe and i should add tests or checks.
+ */
+fn bvec_as_mut_ptr(xs: &BVec) -> *mut u32 {
+    bvec_check_rep(xs);
+    xs.buf
+}
+
+/*
+ * get the element at index i in bvec xs.
+ * pre: TODO
+ * post: TODO
+ * TODO: how do i write my own pointer arithmetic implementation?
+ * TODO: dont use as_mut_ptr() (use const version)
+ * TODO: add tests
+ */
+fn bvec_get(xs: &BVec, i: usize) -> u32 {
+    debug_assert!(i < bvec_len(xs));
+    bvec_check_rep(xs);
+
+    let ptr = bvec_as_mut_ptr(xs);
+    unsafe { *ptr.add(i) }
+}
+
+/*
+ * convert a bvec as a debugging string
+ * pre: TODO
+ * post: TODO
+ * TODO: write my own String implementation.
+ * TODO: use proper rust traits.
+ * TODO: remove this function.
+ */
+fn bvec_dbg(xs: &BVec) -> String {
+    bvec_check_rep(xs);
+
+    let mut i = 0;
+    let mut acc = String::new();
+
+    todo!()
+}
+
+/*
+ * convert a bvec as a string
+ * pre: TODO
+ * post: TODO
+ * TODO: write my own String implementation.
+ * TODO: write my own u32 -> char implementation.
+ * TODO: use proper rust traits.
+ */
+fn bvec_show(xs: &BVec) -> String {
+    bvec_check_rep(xs);
+
+    let mut acc = String::new();
+    acc.push('[');
+
+    if !bvec_is_empty(xs) {
+        let mut i = 0;
+        /* inv: TODO */
+        while i < bvec_len(xs) - 1 {
+            let x = bvec_get(xs, i);
+            let c = unsafe { char::from_u32_unchecked(x) };
+            acc.push(c);
+            acc.push(' ');
+            i += 1;
+        }
+        let x = bvec_get(xs, i);
+        let c = unsafe { char::from_u32_unchecked(x) };
+        acc.push(c);
+    }
+    acc.push(']');
+    acc
+}
+
+/*
+ * append an item x to a bvec xs.
+ * pre: TODO
+ * post: TODO
+ */
+fn bvec_push(xs: &mut BVec, x: i32) {
+    bvec_check_rep(xs);
     todo!()
 }
 
@@ -101,7 +242,7 @@ struct BBox; /* bear box */
 #[repr(C)]
 struct BVecDeque; /* bear vecdeque */
 
-#[repr(C)]
+#[repr(C, u8)]
 #[derive(Debug)]
 enum Expr {
     IntLit(i32),
@@ -834,10 +975,49 @@ mod test {
         );
     }
 
+    #[test]
+    fn test_bvec_new() {
+        let xs = bvec_new();
+
+        dbg_check(&xs, expect!["BVec { buf: 0x600000ff4000, len: 0, cap: 4 }"]);
+        dbg_check(bvec_is_empty(&xs), expect!["true"]);
+        str_check(bvec_show(&xs), expect!["[]"]);
+
+    }
+
+    #[test]
+    fn test_bvec_push() {
+        let mut xs = bvec_new();
+        dbg_check(&xs, expect!["BVec { buf: 0x600000ff0000, len: 0, cap: 4 }"]);
+        dbg_check(bvec_is_empty(&xs), expect!["true"]);
+        str_check(bvec_show(&xs), expect!["[]"]);
+
+        bvec_push(&mut xs, 1);
+        dbg_check(&xs, expect![]);
+        dbg_check(bvec_is_empty(&xs), expect![]);
+
+        bvec_push(&mut xs, 2);
+        dbg_check(&xs, expect![]);
+        dbg_check(bvec_is_empty(&xs), expect![]);
+
+        bvec_push(&mut xs, 3);
+        dbg_check(&xs, expect![]);
+        dbg_check(bvec_is_empty(&xs), expect![]);
+
+        bvec_push(&mut xs, 4);
+        dbg_check(&xs, expect![]);
+        dbg_check(bvec_is_empty(&xs), expect![]);
+
+        bvec_push(&mut xs, 5);
+        dbg_check(&xs, expect![]);
+        dbg_check(bvec_is_empty(&xs), expect![]);
+    }
+
     /*
      * TODO:
+     * - [ ] write my own expect test library.
      * - [ ] add rust or emacs macro for faster testing.
-     * - [ ] faster Emacs expect test updates.
+     * - [ ] faster emacs expect test updates.
      * - [ ] add more formal proofs of correctness.
      * - [ ] improve performance via caching/DoD.
      * - [ ] write my own trim() implementation?
@@ -845,9 +1025,10 @@ mod test {
      * - [ ] simplify Expr datatype.
      * - [ ] less verbose pretty printer for Expr.
      * - [ ] should the atomic expression property be embedded in the type system?
-     * - [ ] rename `scornbear` to `libsb`.
      * - [ ] add Mul, Add to Expr (then simplify corresponds rules).
      * - [ ] add Rule trait and convert corresponding lints.
      * - [ ] add property-based tests.
+     * - [ ] rename tests st prefixes restrict.
+     * - [ ] should i check ri before or after pre-/post-conditions?
      */
 }
