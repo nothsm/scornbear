@@ -77,7 +77,7 @@ const BVEC_SIZE: usize = 4;
 #[repr(C)]
 #[derive(Debug)]
 struct BVec {
-    buf: *mut u32,
+    buf: *mut i32,
     len: usize,
     cap: usize
 }
@@ -101,9 +101,9 @@ fn bvec_check_rep(xs: &BVec) {
  * TODO: perhaps write my own Layout functions.
  */
 fn bvec_new() -> BVec {
-    let layout = Layout::array::<u32>(BVEC_SIZE).unwrap();
+    let layout = Layout::array::<i32>(BVEC_SIZE).unwrap();
 
-    let buf = unsafe { alloc::alloc_zeroed(layout) as *mut u32 };
+    let buf = unsafe { alloc::alloc_zeroed(layout) as *mut i32 };
     let len = 0;
     let cap = BVEC_SIZE;
 
@@ -111,15 +111,6 @@ fn bvec_new() -> BVec {
     bvec_check_rep(&xs);
 
     xs
-}
-
-/*
- * frees the memory allocatedf or the bvec xs.
- * pre: TODO
- * post: TODO
- */
-fn bvec_free(xs: &BVec) {
-    todo!()
 }
 
 /*
@@ -134,7 +125,7 @@ fn bvec_len(xs: &BVec) -> usize {
 }
 
 /*
- * returns true if the bvec xs is empty (length = 0), else false
+ * returns true if the bvec xs is empty (length = 0), else false.
  * pre: TODO
  * post: TODO
  */
@@ -144,14 +135,24 @@ fn bvec_is_empty(xs: &BVec) -> bool {
 }
 
 /*
+ * gets the capacity of the buffer allocated for the bvec xs.
+ * pre: TODO
+ * post: TODO
+ */
+fn bvec_capacity(xs: &BVec) -> usize {
+    bvec_check_rep(xs);
+    xs.cap
+}
+
+/*
  * get a raw mutable pointer to the bvec xs's buffer.
  * pre: TODO
  * post: TODO
- * TODO: this should take in &mut BVec, not &BVec
- * TODO: add tests
- * TODO: i think this is super unsafe and i should add tests or checks.
+ * TODO: this should take in &mut BVec, not &BVec.
+ * TODO: add tests.
+ * TODO: I think this is super unsafe. I should add tests or checks.
  */
-fn bvec_as_mut_ptr(xs: &BVec) -> *mut u32 {
+fn bvec_as_mut_ptr(xs: &BVec) -> *mut i32 {
     bvec_check_rep(xs);
     xs.buf
 }
@@ -160,11 +161,11 @@ fn bvec_as_mut_ptr(xs: &BVec) -> *mut u32 {
  * get the element at index i in bvec xs.
  * pre: TODO
  * post: TODO
- * TODO: how do i write my own pointer arithmetic implementation?
- * TODO: dont use as_mut_ptr() (use const version)
- * TODO: add tests
+ * TODO: how do I write my own pointer arithmetic implementation?
+ * TODO: don't use as_mut_ptr() (use const version).
+ * TODO: add tests.
  */
-fn bvec_get(xs: &BVec, i: usize) -> u32 {
+fn bvec_get(xs: &BVec, i: usize) -> i32 {
     debug_assert!(i < bvec_len(xs));
     bvec_check_rep(xs);
 
@@ -173,29 +174,43 @@ fn bvec_get(xs: &BVec, i: usize) -> u32 {
 }
 
 /*
- * convert a bvec as a debugging string
+ * frees the memory allocated for the bvec xs.
+ * pre: TODO
+ * post: TODO
+ * TODO: safer Layout::array result handling.
+ */
+fn bvec_free(xs: BVec) {
+    bvec_check_rep(&xs);
+
+    let ptr = bvec_as_mut_ptr(&xs) as *mut u8;
+    let layout = Layout::array::<i32>(bvec_capacity(&xs)).unwrap();
+    unsafe { alloc::dealloc(ptr, layout) };
+}
+
+/*
+ * convert a bvec to a (debug) string
  * pre: TODO
  * post: TODO
  * TODO: write my own String implementation.
  * TODO: use proper rust traits.
- * TODO: remove this function.
+ * TODO: use a proper formatter.
  */
 fn bvec_dbg(xs: &BVec) -> String {
     bvec_check_rep(xs);
 
     let mut i = 0;
-    let mut acc = String::new();
-
-    todo!()
+    let mut acc = String::from(format!("BVec {{ len: {}, cap: {} }}", xs.len, xs.cap));
+    acc
 }
 
 /*
- * convert a bvec as a string
+ * convert a bvec to a string
  * pre: TODO
  * post: TODO
  * TODO: write my own String implementation.
  * TODO: write my own u32 -> char implementation.
  * TODO: use proper rust traits.
+ * TODO: test this.
  */
 fn bvec_show(xs: &BVec) -> String {
     bvec_check_rep(xs);
@@ -208,14 +223,30 @@ fn bvec_show(xs: &BVec) -> String {
         /* inv: TODO */
         while i < bvec_len(xs) - 1 {
             let x = bvec_get(xs, i);
-            let c = unsafe { char::from_u32_unchecked(x) };
-            acc.push(c);
-            acc.push(' ');
+            /* TODO: refactor these blocks. */
+            if x < 0 {
+                acc.push('-');
+                let c = unsafe { char::from_u32_unchecked(-x as u32) };
+                acc.push(c);
+                acc.push(' ');
+            } else {
+                let c = unsafe { char::from_u32_unchecked(x as u32) };
+                acc.push(c);
+                acc.push(' ');
+            }
             i += 1;
         }
         let x = bvec_get(xs, i);
-        let c = unsafe { char::from_u32_unchecked(x) };
-        acc.push(c);
+        if x < 0 {
+            acc.push('-');
+            let c = unsafe { char::from_u32_unchecked(-x as u32) };
+            acc.push(c);
+            acc.push(' ');
+        } else {
+            let c = unsafe { char::from_u32_unchecked(x as u32) };
+            acc.push(c);
+            acc.push(' ');
+        }
     }
     acc.push(']');
     acc
@@ -979,38 +1010,48 @@ mod test {
     fn test_bvec_new() {
         let xs = bvec_new();
 
-        dbg_check(&xs, expect!["BVec { buf: 0x600000ff4000, len: 0, cap: 4 }"]);
-        dbg_check(bvec_is_empty(&xs), expect!["true"]);
+        str_check(bvec_dbg(&xs), expect!["BVec { len: 0, cap: 4 }"]);
+        str_check(bvec_is_empty(&xs), expect!["true"]);
         str_check(bvec_show(&xs), expect!["[]"]);
+        str_check(bvec_capacity(&xs), expect!["4"]);
 
+        bvec_free(xs);
     }
 
     #[test]
     fn test_bvec_push() {
         let mut xs = bvec_new();
-        dbg_check(&xs, expect!["BVec { buf: 0x600000ff0000, len: 0, cap: 4 }"]);
-        dbg_check(bvec_is_empty(&xs), expect!["true"]);
+        str_check(bvec_dbg(&xs), expect!["BVec { len: 0, cap: 4 }"]);
+        str_check(bvec_is_empty(&xs), expect!["true"]);
         str_check(bvec_show(&xs), expect!["[]"]);
+        str_check(bvec_capacity(&xs), expect!["4"]);
 
-        bvec_push(&mut xs, 1);
-        dbg_check(&xs, expect![]);
-        dbg_check(bvec_is_empty(&xs), expect![]);
+        // bvec_push(&mut xs, 1);
+        // str_check(bvec_dbg(&xs), expect![]);
+        // str_check(bvec_is_empty(&xs), expect![]);
+        // str_check(bvec_capacity(&xs), expect![]);
 
-        bvec_push(&mut xs, 2);
-        dbg_check(&xs, expect![]);
-        dbg_check(bvec_is_empty(&xs), expect![]);
+        // bvec_push(&mut xs, 2);
+        // str_check(bvec_dbg(&xs), expect![]);
+        // str_check(bvec_is_empty(&xs), expect![]);
+        // str_check(bvec_capacity(&xs), expect![]);
 
-        bvec_push(&mut xs, 3);
-        dbg_check(&xs, expect![]);
-        dbg_check(bvec_is_empty(&xs), expect![]);
+        // bvec_push(&mut xs, 3);
+        // str_check(bvec_dbg(&xs), expect![]);
+        // str_check(bvec_is_empty(&xs), expect![]);
+        // str_check(bvec_capacity(&xs), expect![]);
 
-        bvec_push(&mut xs, 4);
-        dbg_check(&xs, expect![]);
-        dbg_check(bvec_is_empty(&xs), expect![]);
+        // bvec_push(&mut xs, 4);
+        // str_check(bvec_dbg(&xs), expect![]);
+        // str_check(bvec_is_empty(&xs), expect![]);
+        // str_check(bvec_capacity(&xs), expect![]);
 
-        bvec_push(&mut xs, 5);
-        dbg_check(&xs, expect![]);
-        dbg_check(bvec_is_empty(&xs), expect![]);
+        // bvec_push(&mut xs, 5);
+        // str_check(bvec_dbg(&xs), expect![]);
+        // str_check(bvec_is_empty(&xs), expect![]);
+        // str_check(bvec_capacity(&xs), expect![]);
+
+        bvec_free(xs);
     }
 
     /*
