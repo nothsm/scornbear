@@ -3,6 +3,8 @@
 #![crate_name = "libsb"]
 #![crate_type = "lib"]
 
+use std::fmt::{self, Display};
+
 use std::alloc::{self, Layout};
 use std::mem;
 use std::ptr;
@@ -388,6 +390,12 @@ fn bvec_push(xs: &mut BVec, x: i32) {
 impl Drop for BVec {
     fn drop(&mut self) {
         bvec_free(self);
+    }
+}
+
+impl Display for BVec {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", bvec_show(self))
     }
 }
 
@@ -1155,7 +1163,7 @@ mod test {
     fn test_bvec_new() {
         let mut xs = bvec_new();
 
-        str_check(bvec_show(&xs), expect!["[]"]);
+        str_check(&xs, expect!["[]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 0, cap: 4 }"]);
         str_check(bvec_len(&xs), expect!["0"]);
         str_check(bvec_is_empty(&xs), expect!["true"]);
@@ -1165,128 +1173,119 @@ mod test {
     #[test]
     fn test_bvec_push() {
         let mut xs = bvec_new();
-        str_check(bvec_show(&xs), expect!["[]"]);
+        str_check(&xs, expect!["[]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 0, cap: 4 }"]);
         str_check(bvec_len(&xs), expect!["0"]);
         str_check(bvec_is_empty(&xs), expect!["true"]);
         str_check(bvec_capacity(&xs), expect!["4"]);
 
         bvec_push(&mut xs, 1);
-        str_check(bvec_show(&xs), expect!["[1]"]);
+        str_check(&xs, expect!["[1]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 1, cap: 4 }"]);
         str_check(bvec_len(&xs), expect!["1"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["4"]);
 
         bvec_push(&mut xs, 2);
-        str_check(bvec_show(&xs), expect!["[1 2]"]);
+        str_check(&xs, expect!["[1 2]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 2, cap: 4 }"]);
         str_check(bvec_len(&xs), expect!["2"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["4"]);
 
         bvec_push(&mut xs, 3);
-        str_check(bvec_show(&xs), expect!["[1 2 3]"]);
+        str_check(&xs, expect!["[1 2 3]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 3, cap: 4 }"]);
         str_check(bvec_len(&xs), expect!["3"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["4"]);
 
         bvec_push(&mut xs, 4);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4]"]);
+        str_check(&xs, expect!["[1 2 3 4]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 4, cap: 8 }"]);
         str_check(bvec_len(&xs), expect!["4"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["8"]);
 
         bvec_push(&mut xs, 5);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5]"]);
+        str_check(&xs, expect!["[1 2 3 4 5]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 5, cap: 8 }"]);
         str_check(bvec_len(&xs), expect!["5"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["8"]);
 
         bvec_push(&mut xs, 6);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 6, cap: 8 }"]);
         str_check(bvec_len(&xs), expect!["6"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["8"]);
 
         bvec_push(&mut xs, 7);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 7, cap: 8 }"]);
         str_check(bvec_len(&xs), expect!["7"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["8"]);
 
         bvec_push(&mut xs, 8);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7 8]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 8, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["8"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, 9);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7 8 9]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 9, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["9"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -1);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7 8 9 -1]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 10, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["10"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -2);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7 8 9 -1 -2]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 11, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["11"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -3);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 12, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["12"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -4);
-        str_check(bvec_show(&xs), expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4]"]);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 13, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["13"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -5);
-        str_check(
-            bvec_show(&xs),
-            expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5]"],
-        );
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 14, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["14"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -6);
-        str_check(
-            bvec_show(&xs),
-            expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5 -6]"],
-        );
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5 -6]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 15, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["15"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
         bvec_push(&mut xs, -7);
-        str_check(
-            bvec_show(&xs),
-            expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5 -6 -7]"],
-        );
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5 -6 -7]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 16, cap: 32 }"]);
         str_check(bvec_len(&xs), expect!["16"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
