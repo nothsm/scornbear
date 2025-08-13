@@ -3,7 +3,7 @@
 #![crate_name = "libsb"]
 #![crate_type = "lib"]
 
-use std::fmt::{self, Display};
+use std::fmt::{self, Display, Pointer};
 
 use std::alloc::{self, Layout};
 use std::mem;
@@ -351,13 +351,32 @@ fn bvec_push(xs: &mut BVec, x: i32) {
 
 impl Drop for BVec {
     fn drop(&mut self) {
+        bvec_check_rep(self);
         bvec_free(self);
     }
 }
 
 impl Display for BVec {
+    /*
+     * formats TODO
+     * pre: TODO
+     * post: TODO
+     */
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        bvec_check_rep(self);
         write!(f, "{}", bvec_show(self))
+    }
+}
+
+impl Pointer for BVec {
+    /*
+     * formats TODO
+     * pre: TODO
+     * post: TODO
+     */
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        bvec_check_rep(self);
+        write!(f, "{:p}", bvec_as_mut_ptr(self))
     }
 }
 
