@@ -244,7 +244,7 @@ fn bvec_set(xs: &mut BVec, i: usize, x: i32) {
  * post: TODO
  * TODO: safer Layout::array result handling.
  */
-fn bvec_free(xs: BVec) {
+fn bvec_free(xs: &mut BVec) {
     bvec_check_rep(&xs);
 
     let ptr = bvec_as_mut_ptr(&xs) as *mut u8;
@@ -383,6 +383,12 @@ fn bvec_push(xs: &mut BVec, x: i32) {
     }
     xs.len = new_len;
     bvec_check_rep(xs);
+}
+
+impl Drop for BVec {
+    fn drop(&mut self) {
+        bvec_free(self);
+    }
 }
 
 /* TODO */
@@ -1147,15 +1153,13 @@ mod test {
 
     #[test]
     fn test_bvec_new() {
-        let xs = bvec_new();
+        let mut xs = bvec_new();
 
         str_check(bvec_show(&xs), expect!["[]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 0, cap: 4 }"]);
         str_check(bvec_len(&xs), expect!["0"]);
         str_check(bvec_is_empty(&xs), expect!["true"]);
         str_check(bvec_capacity(&xs), expect!["4"]);
-
-        bvec_free(xs);
     }
 
     #[test]
@@ -1287,8 +1291,6 @@ mod test {
         str_check(bvec_len(&xs), expect!["16"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["32"]);
-
-        bvec_free(xs);
     }
 
     /*
