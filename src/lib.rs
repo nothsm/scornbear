@@ -91,7 +91,7 @@ fn round_up(x: usize, y: usize) -> usize {
 /*
  * represents a (scorn)bear vector.
  * af: obj = TODO
- * ri: self.len < self.cap, -9 <= xs[i] <= 9 TODO
+ * ri: self.len < self.cap, TODO
  */
 #[repr(C)]
 #[derive(Debug)]
@@ -105,7 +105,6 @@ struct BVec {
  * check the bvec rep inv for the bvec xs.
  * pre: TODO
  * post: TODO
- * TODO: check -9 <= xs[i] <= 9.
  */
 fn bvec_check_rep(xs: &BVec) {
     debug_assert!(xs.len < xs.cap);
@@ -207,9 +206,7 @@ fn bvec_get(xs: &BVec, i: usize) -> i32 {
     debug_assert!(offset < max_isize); /* TODO: should this be a <=? */
     if offset > 0 { /* TODO: check the other precondition for pointer::add. */ }
 
-    let x = unsafe { *ptr.add(count) }; /* TODO: what are the preconditions for dereferencing raw ptrs? */
-    debug_assert!(-9 <= x && x <= 9);
-    x
+    unsafe { *ptr.add(count) } /* TODO: what are the preconditions for dereferencing raw ptrs? */
 }
 
 /*
@@ -294,49 +291,14 @@ fn bvec_show(xs: &BVec) -> String {
     /* inv: TODO */
     while i < bvec_len(xs) - 1 {
         let x = bvec_get(xs, i);
-        /* TODO: refactor these blocks. */
-        if x < 0 {
-            debug_assert!(-x >= 0);
-
-            let num = -x as u32;
-            let radix = 10;
-            let c = char::from_digit(num, radix).unwrap(); /* TODO: handle properly! */
-
-            acc.push('-');
-            acc.push(c);
-            acc.push(' ');
-        } else {
-            debug_assert!(x >= 0);
-
-            let num = x as u32;
-            let radix = 10;
-            let c = char::from_digit(num, radix).unwrap(); /* TODO: handle properly! */
-
-            acc.push(c);
-            acc.push(' ');
-        }
+        acc.push_str(&x.to_string());
+        acc.push(' ');
         i += 1;
     }
     debug_assert!(i == bvec_len(xs) - 1);
+
     let x = bvec_get(xs, i);
-    if x < 0 {
-        debug_assert!(-x >= 0);
-
-        let num = -x as u32;
-        let radix = 10;
-        let c = char::from_digit(num, radix).unwrap(); /* TODO: handle properly! */
-
-        acc.push('-');
-        acc.push(c);
-    } else {
-        debug_assert!(x >= 0);
-
-        let num = x as u32;
-        let radix = 10;
-        let c = char::from_digit(num, radix).unwrap();
-
-        acc.push(c);
-    }
+    acc.push_str(&x.to_string());
     acc.push(']');
     acc
 }
@@ -1143,7 +1105,7 @@ mod test {
         dbg_check(lint(expr), expect![[r#"["add_zero"]"#]])
     }
 
-    // #[test]
+    #[test]
     fn test_slurp() {
         let filename = "data/program.txt";
 
@@ -1249,43 +1211,43 @@ mod test {
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
-        bvec_push(&mut xs, -2);
-        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2]"]);
+        bvec_push(&mut xs, 21);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 21]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 11, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["11"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
-        bvec_push(&mut xs, -3);
-        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3]"]);
+        bvec_push(&mut xs, -32);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 21 -32]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 12, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["12"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
-        bvec_push(&mut xs, -4);
-        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4]"]);
+        bvec_push(&mut xs, 43);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 21 -32 43]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 13, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["13"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
-        bvec_push(&mut xs, -5);
-        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5]"]);
+        bvec_push(&mut xs, -54);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 21 -32 43 -54]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 14, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["14"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
-        bvec_push(&mut xs, -6);
-        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5 -6]"]);
+        bvec_push(&mut xs, 65);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 21 -32 43 -54 65]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 15, cap: 16 }"]);
         str_check(bvec_len(&xs), expect!["15"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
         str_check(bvec_capacity(&xs), expect!["16"]);
 
-        bvec_push(&mut xs, -7);
-        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 -2 -3 -4 -5 -6 -7]"]);
+        bvec_push(&mut xs, -76);
+        str_check(&xs, expect!["[1 2 3 4 5 6 7 8 9 -1 21 -32 43 -54 65 -76]"]);
         str_check(bvec_dbg(&xs), expect!["BVec { len: 16, cap: 32 }"]);
         str_check(bvec_len(&xs), expect!["16"]);
         str_check(bvec_is_empty(&xs), expect!["false"]);
